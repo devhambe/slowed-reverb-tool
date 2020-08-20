@@ -1,17 +1,26 @@
 from moviepy.editor import *
-import argparse, os, sys
+import argparse
+import os
+import sys
+import requests
 
-R = '\033[31m' # red
-G = '\033[32m' # green
-C = '\033[36m' # cyan
-W = '\033[0m'  # white
-Y = '\033[33m' # yellow
+R = '\033[31m'  # red
+G = '\033[32m'  # green
+B = '\033[34m'  # blue
+C = '\033[36m'  # cyan
+W = '\033[0m'   # white
+Y = '\033[33m'  # yellow
+
+version = "1.0.0"
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
 
 class Generator:
-    def __init__(self, videofile, audiofile, audio_type, clip_speed=0.5, audio_speed=0.88):
+    def __init__(self, videofile, audiofile, audio_type, output_dir, clip_speed=0.5, audio_speed=0.88):
         self.clip = VideoFileClip(videofile)
         self.audio = AudioFileClip(audiofile)
         self.audio_type = audio_type
+        self.output_dir = output_dir
         self.clip_speed = clip_speed
         self.audio_speed = audio_speed
 
@@ -35,7 +44,8 @@ class Generator:
             loopedclip = self.loop_clip(slowedclip, self.audio)
             final = loopedclip.set_audio(self.audio)
 
-        final.write_videofile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "output.mp4"), codec="libx264", audio_codec="aac")
+        final.write_videofile(os.path.join(self.output_dir, "output.mp4"), codec="libx264", audio_codec="aac")
+
 
 def banner():
     text = r"""
@@ -45,11 +55,14 @@ def banner():
  (__  ) / /_/ / |/ |/ /  __/ /_/ /  /_  __/  / /  /  __/ |/ /  __/ /  / /_/ /
 /____/_/\____/|__/|__/\___/\__,_/    /_/    /_/   \___/|___/\___/_/  /_.___/"""
 
-    print(G + text + W + '\n')
+    print(B + text + W + '\n')
+    print(G + '[>]' + C + ' Created By : ' + W + 'https://github.com/devhambe')
+    print(G + '[>]' + C + ' Version    : ' + W + version + '\n')
+
 
 def menu():
     while True:
-        print('\n' + Y + '[!] Actions : ' + W + '\n')
+        print('\n' + Y + '[!] Actions : ' + W)
         print(G + '[1]' + C + ' Video + original audio' + W)
         print(G + '[2]' + C + ' Video + edited audio' + W)
         print(G + '[0]' + C + ' Exit' + W)
@@ -63,8 +76,27 @@ def menu():
         elif choice == "0":
             sys.exit()
         else:
-            print ('\n' + R + '[-]' + C + ' Invalid Choice...Try Again.' + W)
+            print('\n' + R + '[-]' + C + ' Invalid Choice...Try Again.' + W)
             menu()
+
+
+def version_check():
+    print(G + '[+]' + C + ' Checking for Updates...', end='')
+    version_url = 'https://raw.githubusercontent.com/devhambe/Slowed_Reverb_Tool/master/version.txt'
+    try:
+        version_req = requests.get(version_url, timeout=5)
+        if version_req.status_code == 200:
+            github_version = version_req.text
+            github_version = github_version.strip()
+            if version == github_version:
+                print(C + '[' + G + ' Up-To-Date ' + C + ']' + '\n')
+            else:
+                print(C + '[' + G + ' Available : {} '.format(github_version) + C + ']' + '\n')
+        else:
+            print(C + '[' + R + ' Status : {} '.format(version_req.status_code) + C + ']' + '\n')
+    except Exception as e:
+        print('\n\n' + R + '[-]' + C + ' Exception : ' + W + str(e))
+
 
 def get_valid_path(text):
     while True:
@@ -77,6 +109,7 @@ def get_valid_path(text):
             break
 
     return path
+
 
 def get_valid_speed(text, default):
     while True:
@@ -97,6 +130,7 @@ def get_valid_speed(text, default):
             break
     return speed
 
+
 def prompt(audio_type):
     video = get_valid_path('\n' + G + '[+]' + C + ' Path to video : ' + W)
     audio = get_valid_path('\n' + G + '[+]' + C + ' Path to audio : ' + W)
@@ -105,18 +139,17 @@ def prompt(audio_type):
         audio_speed = get_valid_speed('\n' + G + '[+]' + C + ' Audio speed (default is 0.88) : ' + W, 0.88)
 
     try:
-        g = Generator(video, audio, audio_type, video_speed, audio_speed)
+        g = Generator(video, audio, audio_type, current_dir, video_speed, audio_speed)
         g.write_file()
     except Exception as e:
         print(R + '[-]' + C + ' Exception : ' + W + str(e))
 
-
-
 try:
     banner()
+    version_check()
     menu()
 except KeyboardInterrupt:
-    print ('\n' + R + '[-]' + C + ' Keyboard Interrupt.' + W)
+    print('\n' + R + '[-]' + C + ' Keyboard Interrupt.' + W)
     sys.exit()
 
-#TODO: Add reverb
+# TODO: Add reverb (use ffmpeg?)
