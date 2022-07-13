@@ -1,5 +1,4 @@
 from moviepy.editor import *
-import argparse
 import os
 import sys
 import requests
@@ -44,7 +43,7 @@ class Generator:
             loopedclip = self.loop_clip(slowedclip, self.audio)
             final = loopedclip.set_audio(self.audio)
 
-        final.write_videofile(os.path.join(self.output_dir, "output.mp4"), codec="libx264", audio_codec="aac")
+        final.write_videofile(os.path.join(self.output_dir, "output/output.mp4"), codec="libx264", audio_codec="aac")
 
 
 def banner():
@@ -63,8 +62,8 @@ def banner():
 def menu():
     while True:
         print('\n' + Y + '[!] Actions : ' + W)
-        print(G + '[1]' + C + ' Video + original audio' + W)
-        print(G + '[2]' + C + ' Video + edited audio' + W)
+        print(G + '[1]' + C + ' Video + use original audio' + W)
+        print(G + '[2]' + C + ' Video + use edited audio (already slowed)' + W)
         print(G + '[0]' + C + ' Exit' + W)
 
         choice = input('\n' + R + '[>]' + W)
@@ -100,7 +99,7 @@ def version_check():
 
 def get_valid_path(text):
     while True:
-        path = input(text)
+        path = input(text).strip('"')
 
         if not os.path.exists(path):
             print(R + '[-]' + C + ' Invalid path' + W)
